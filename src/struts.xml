@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+        "http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+
+    <!--配置全局国际化文件-->
+    <constant name="struts.custom.i18n.resources" value="i18n"></constant>
+
+    <!--动态方法-->
+    <constant name="struts.enable.DynamicMethodInvocation" value="true"></constant>
+
+    <!--修改全局主题-->
+    <constant name="struts.ui.theme" value="simple"></constant>
+
+    <!--配置OGNL调用静态方法-->
+    <constant name="struts.ognl.allowStaticMethodAccess" value="true"></constant>
+
+    <!--配置struts可受理的请求扩展名-->
+    <constant name="struts.action.extension" value="action,do,html,"></constant>
+
+    <!--
+        package：包，struts2使用package来组织模块
+        name 属性：必须，用于其他的包应用当前包
+        extends：当前包继承哪个包，继承的，既可以继承其中的所有的配置，通常情况下继承struts-default
+                 struts-default 这个包在 struts-default.xml 文件中定义
+        namespace 可选，如果它没有给出，则以 / 为默认值
+                 若namespace有一个非默认值，则要想调用这个包里的Action，
+                 就必须把这个属性所定义的命名空间添加到有关的url 字符串里
+
+                 http://localhost:8080/contextPatch/namespace/actionName.action
+                 即
+                 http://localhost:8080/Struts2/test/product-input.action
+    -->
+    <package name="helloWorld" extends="struts-default" namespace="/">
+        <!--修改prepareInterceptor拦截器是否总是调用prepare()方法,也就是AlwaysInvokePrepare-->
+        <interceptors>
+            <!--配置自己的拦截器-->
+            <interceptor name="myInterceptor" class="org.struts2.interceptor.MyInterceptor"></interceptor>
+
+
+            <interceptor-stack name="updateStack">
+                <!--修改那个拦截器栈-->
+                <interceptor-ref name="paramsPrepareParamsStack">
+                    <!--修改那个拦截器的那个属性-->
+                    <param name="prepare.alwaysInvokePrepare">false</param>
+                    
+                    
+                    <!--修改文件的上传限制-->
+                    <param name="fileUpload.maximumSize">2000</param>
+                    <param name="fileUpload.allowedTypes">text/html,text/xml,application/octet-stream</param>
+                    <param name="fileUpload.allowedExtensions">html,dtd,xml</param>
+                </interceptor-ref>
+            </interceptor-stack>
+        </interceptors>
+        <!--默认拦截器为修改后的-->
+        <default-interceptor-ref name="updateStack" />
+
+        <!--修改默认的拦截器-->
+        <!--<default-interceptor-ref name="paramsPrepareParamsStack"></default-interceptor-ref>-->
+
+        <!--全局的异常处理-->
+        <global-results>
+            <result name="input">/pages/filters/input.jsp</result>
+        </global-results>
+        <global-exception-mappings>
+            <exception-mapping exception="java.lang.ArithmeticException" result="input"></exception-mapping>
+        </global-exception-mappings>
+
+
+        <!--
+            配置一个action：一个struts2请求就是一个action
+            name：对应一个struts2的请求的名字（或对一个servletPath，但去除 / 和扩展名），不包含扩展名
+            class: 的默认值为com.opensymphony.xwork2.ActionSupport
+            method： 的默认值为execute
+            result:结果
+        -->
+        <action name="product-input"
+                class="com.opensymphony.xwork2.ActionSupport"
+                method="execute">
+            <!--
+                result:结果，表示action方法返回后可能返回的一个结果，所以一个action节点可能会有多个result子节点
+                多个result子节点使用name来区分
+                name：标识一个result，和action方法的返回值对应，默认值为success
+                type：表示结果的类型，默认值为dispatcher（转发到结果）
+            -->
+            <result name="success" type="dispatcher">/pages/filters/input.jsp</result>
+        </action>
+        <!--
+
+            result的name属性是方法的save返回值
+        -->
+        <action name="product-save" class="org.struts2.pojo.Product" method="save">
+            <result name="detail">/pages/filters/detail.jsp</result>
+        </action>
+
+        <!--test product-->
+        <action name="test" class="org.struts2.pojo.Product" method="test" >
+            <result name="success">/index.jsp</result>
+        </action>
+
+        <!--test ActionContext-->
+        <action name="TestActionContext" class="org.struts2.action.TestActionContextAction">
+            <result name="success">/pages/action/action.jsp</result>
+        </action>
+
+        <!--test AwareAction-->
+        <action name="TestAware" class="org.struts2.action.TestAwareAction">
+            <result name="success">/pages/action/actionaware.jsp</result>
+        </action>
+        <action name="Aware-save" class="org.struts2.action.TestAwareAction" method="save">
+            <result name="save">/pages/action/actionaware.jsp</result>
+        </action>
+        <action name="Aware-invalidate" class="org.struts2.action.TestAwareAction" method="invalidate">
+            <result name="invalidate">/pages/action/actionaware.jsp</result>
+        </action>
+
+        <!--获取HttpServletRequest 和 HttpSession 和 HttpServletResponse-->
+        <action name="TestServletActionContext" class="org.struts2.action.TestServletContextAction" method="execute">
+            <result name="success">/index.jsp</result>
+        </action>
+        <action name="TestAwareServletActionContext" class="org.struts2.action.TestAwareServletContextAction" method="execute">
+            <result name="success">/index.jsp</result>
+        </action>
+
+
+        <!--登录练习-->
+        <action name="go-login">
+            <result>/pages/user/login.jsp</result>
+        </action>
+        <action name="login" class="org.struts2.pojo.UserAction" method="login">
+            <result name="login-success">/pages/user/login_success.jsp</result>
+            <result name="username-exist">/pages/user/login_success.jsp</result>
+        </action>
+        <action name="logout" class="org.struts2.pojo.UserAction" method="logout">
+            <result name="logout-success">/pages/user/login.jsp</result>
+        </action>
+
+        <!--Test ActionSupport-->
+        <action name="testActionSupport">
+            <result>/pages/actionsupport/actionsupport.jsp</result>
+        </action>
+
+
+        <!--test result-->
+        <action name="testResult" class="org.struts2.result.TestResult">
+            <!--转发到-->
+            <result name="success" type="dispatcher">/pages/testresult/success.jsp</result>
+            <!--重定向到 -->
+            <result name="login" type="redirect">/pages/testresult/success.jsp</result>
+            <!--转发到action-->
+            <result name="index" type="chain">
+                <param name="actionName">chainAction</param>
+                <param name="namespace">/testResult</param>
+            </result>
+            <!--重定向到action-->
+            <!--<result name="index2" type="redirectAction">
+                <param name="actionName">redirectAction</param>
+                <param name="namespace">/testResult</param>
+            </result>-->
+            <!--重定向到action简化-->
+            <result name="index2" type="redirect">/testResult/redirectAction</result>
+        </action>
+
+        <!--通配符的使用-->
+        <action name="UserAction-*" class="org.struts2.wildcard.Wildcard" method="{1}">
+            <result name="{1}-success">/pages/wildcard/wildcard.jsp</result>
+        </action>
+
+
+
+        <!--通用标签-->
+        <action name="test-Tag" class="org.struts2.pojo.Product" method="test">
+            <result name="success" >/pages/tag/test_tag.jsp</result>
+        </action>
+
+        <!--form 表单标签-->
+        <action name="form-tag-save" class="org.struts2.valuestack.UserAction" method="save">
+            <result name="success">/pages/tag/form-tag.jsp</result>
+        </action>
+
+        <!--app action 注册-->
+        <action name="emp-*" class="org.struts2.app.EmployeeAction" method="{1}">
+            <result name="{1}-success">/pages/app/emp-{1}.jsp</result>
+            <!--重定向到一个action-->
+            <result name="success-{1}" type="redirectAction">emp-list</result>
+        </action>
+
+
+        <!--conversion error 类型转换 类型转换错误-->
+        <action name="conversion_test" class="org.struts2.conversion.ConversionAction" method="execute">
+            <result>/pages/conversion/success.jsp</result>
+            <!--出现类型转换搓足跳转的页面-->
+            <result name="input">/pages/conversion/conversion.jsp</result>
+        </action>
+        <!--类型转换之集合-->
+        <action name="testConversionList" class="org.struts2.conversion.action.DepartmentAction" >
+            <result>/pages/conversion/success.jsp</result>
+        </action>
+
+
+        <!--跳转到国际化文件-->
+        <action name="testI18n" class="org.struts2.i18n.TestI18nAction">
+            <result>/pages/i18n/i18n.jsp</result>
+        </action>
+        <!--超链接切换-->
+        <action name="Testi18n">
+            <result>/pages/i18n/i18n.jsp</result>
+        </action>
+
+
+        <!--验证规则validation-->
+        <action name="testValidation" class="org.struts2.validation.TestValidationAction">
+            <result>/pages/validation/success.jsp</result>
+            <!--如果验证失败-->
+            <result name="input">/pages/validation/validation.jsp</result>
+        </action>
+        <action name="testValidation2" class="org.struts2.validation.TestValidationAction">
+            <result>/pages/validation/success.jsp</result>
+            <!--如果验证失败-->
+            <result name="input">/pages/validation/validation2.jsp</result>
+        </action>
+
+
+
+        <!--文件上传-->
+        <action name="testUpload" class="org.struts2.upload.UploadAction">
+            <result>/pages/upload/success.jsp</result>
+            <!--如果文件上传失败-->
+            <result name="input">/pages/upload/upload.jsp</result>
+        </action>
+
+
+
+        <!--文件下载-->
+        <action name="testDownload" class="org.struts2.download.DownLoadAction">
+            <result type="stream">
+                <param name="bufferSize">2048</param>
+            </result>
+
+        </action>
+
+
+
+
+        <!--解决表单重复提交-->
+        <action name="testToken" class="org.struts2.token.TokenAction">
+            <!--使用自定义的拦截器-->
+            <interceptor-ref name="myInterceptor"></interceptor-ref>
+
+
+            <!--试用token拦截器-->
+            <interceptor-ref name="token"></interceptor-ref>
+            <!--<interceptor-ref name="tokenSession"></interceptor-ref>-->
+            <!--如果试用token拦截器后表单提交了，则后续的拦截器都不会执行，所以先写token拦截器比较好-->
+            <interceptor-ref name="updateStack"></interceptor-ref>
+
+            <result>/pages/token/token_success.jsp</result>
+            <!--如果表单重复提交后跳转的页面-->
+            <result name="invalid.token">/pages/token/token_error.jsp</result>
+        </action>
+
+
+    </package>
+
+
+    <!--
+        测试
+    -->
+    <package name="testResult" namespace="/testResult" extends="struts-default">
+        <!--转发到action所用-->
+        <action name="chainAction">
+            <result>/pages/testresult/index.jsp</result>
+        </action>
+        <!--重定向到action所用-->
+        <action name="redirectAction">
+            <result>/pages/testresult/index2.jsp</result>
+        </action>
+
+    </package>
+</struts>

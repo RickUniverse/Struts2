@@ -1,0 +1,16 @@
+<!DOCTYPE validators PUBLIC
+        "-//Apache Struts//XWork Validator 1.0.2//EN"
+        "http://struts.apache.org/dtds/xwork-validator-1.0.2.dtd">
+
+<validators>
+    <!--验证年龄的区间-->
+    <field name="age">
+        <field-validator type="int">
+            <param name="min">10</param>
+            <param name="max">20</param>
+            <!--<message>error</message>-->
+            <!--国际化-->
+            <message key="input.error"></message>
+        </field-validator>
+    </field>
+</validators>
